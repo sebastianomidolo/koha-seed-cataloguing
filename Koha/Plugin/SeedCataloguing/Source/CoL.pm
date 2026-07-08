@@ -11,7 +11,7 @@ use URI::Escape qw(uri_escape);
 # CoL dataset in ChecklistBank: 3LR (latest release)
 # Base URL: https://api.checklistbank.org/dataset/3LR
 
-my $BASE   = 'https://api.checklistbank.org/dataset/3LR';
+my $BASE   = 'https://api.checklistbank.org/dataset/3LXR';
 my $COL_UI = 'https://www.catalogueoflife.org/data/taxon';
 
 # search($name) → arrayref of { id, label, rank, status }
@@ -93,14 +93,14 @@ sub fetch {
     }
 
     # Common names from /info endpoint (prefer English).
-    # Language is encoded as an inline suffix, e.g. "Bloodroot (EN)" — no
-    # separate language field exists in this dataset.
+    # 3LXR returns two formats: structured {"name":"bloodroot","language":"eng"}
+    # and inline-suffix {"name":"Bloodroot (EN)"}. Handle both.
     my @common;
     my @vnames = @{ _ensure_array($info->{vernacularNames}) };
     my @en = map  { _strip_lang_suffix($_->{name}) }
-             grep { ($_->{name} // '') =~ /\(EN\)/i } @vnames;
+             grep { _is_english($_) } @vnames;
     my @ot = map  { _strip_lang_suffix($_->{name}) }
-             grep { ($_->{name} // '') !~ /\(EN\)/i } @vnames;
+             grep { !_is_english($_) } @vnames;
     @common = (@en, @ot);
 
     # Synonyms
@@ -143,6 +143,13 @@ sub _api_get {
     return undef unless $resp->is_success;
     my $data = eval { decode_json($resp->decoded_content) };
     return $@ ? undef : $data;
+}
+
+sub _is_english {
+    my ($v) = @_;
+    return 1 if ($v->{language} // '') =~ /^eng?$/i;   # structured field
+    return 1 if ($v->{name}     // '') =~ /\(EN\)/i;   # inline suffix fallback
+    return 0;
 }
 
 sub _strip_lang_suffix {

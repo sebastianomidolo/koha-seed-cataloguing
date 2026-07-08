@@ -1,7 +1,8 @@
 # Catalogue of Life API — notes and known issues
 
-Base URL: `https://api.checklistbank.org/dataset/3LR`  
-Dataset: `3LR` = Catalogue of Life latest release  
+Base URL: `https://api.checklistbank.org/dataset/3LXR`  
+Dataset: `3LXR` = Catalogue of Life eXtended release (recommended by CoL; includes full vernacular name data)  
+Note: `3LR` (without X) is the standard release and lacks vernacular names for many species — do not use it.  
 Authentication: none required (open API)
 
 ---
@@ -43,18 +44,15 @@ first by matching `\(EN\)`.
 
 ---
 
-## Known issue: uneven vernacular name coverage
+## Vernacular name coverage — resolved (2026-07-08)
 
-The CoL API (3LR dataset) has vernacular names for some species but not others.
-For example:
-- *Sanguinaria canadensis*: "Bloodroot (EN)" — present
-- *Physostegia virginiana*: no vernacular names in 3LR
+The original `3LR` dataset had uneven vernacular name coverage (zero for many species).
+Switching to `3LXR` (eXtended release) resolves this — it includes full multilingual
+vernacular name data for all species, with structured `language` fields.
 
-However, the CoL **website** (`catalogueoflife.org/data/taxon/…`) shows 35+
-vernacular names for the same taxa. The source of those names is under investigation
-— likely GBIF or a separate ChecklistBank dataset. A fallback source will be added
-once identified. Do not implement iNaturalist or GBIF fallback until EBo's
-investigation is complete.
+The `3LXR` dataset returns vernacular names in two formats (both handled by the driver):
+- Structured: `{"name": "bloodroot", "language": "eng"}`
+- Inline suffix: `{"name": "Bloodroot (EN)"}`
 
 ---
 
