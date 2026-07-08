@@ -68,7 +68,7 @@ sub fetch {
 
     # Build classification list, kingdom → species (ascending order from API)
     my @classification;
-    for my $level (reverse @{ _ensure_array($class_data) }) {
+    for my $level (@{ _ensure_array($class_data) }) {
         # CoL sometimes returns `name` as a nested object (rank/scientificName/
         # uninomial), but for some infrafamilial ranks (e.g. tribes like
         # "Chelidonieae") it's just a bare string. Handle both.
