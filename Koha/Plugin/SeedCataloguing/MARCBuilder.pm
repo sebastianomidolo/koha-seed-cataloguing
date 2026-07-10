@@ -38,11 +38,12 @@ sub build {
     push @f110, '2' => $species->{source_code}    if $species->{source_code};
     push @fields, MARC::Field->new('110', '2', ' ', @f110);
 
-    # --- 245: Title (collection event stub — to be completed at import time) ---
-    push @fields, MARC::Field->new('245', '1', '0',
-        a => 'Seed collection :',
-        b => $species->{scientific_name},
-    );
+    # --- 245: Title — scientific name, with common name as subtitle if available ---
+    my $common_0 = $species->{common_names}[0];
+    my @f245 = $common_0
+        ? (a => "$species->{scientific_name} :", b => $common_0)
+        : (a => $species->{scientific_name});
+    push @fields, MARC::Field->new('245', '1', '0', @f245);
 
     # --- 251: Version tag ---
     push @fields, MARC::Field->new('251', ' ', ' ',

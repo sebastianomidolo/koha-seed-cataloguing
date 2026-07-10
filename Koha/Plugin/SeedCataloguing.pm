@@ -374,7 +374,7 @@ sub _preview_template {
   <input type="hidden" name="taxon_id"   value="$id_esc"/>
   <input type="hidden" name="confirm"    value="1"/>
   <input type="hidden" name="csrf_token" value="$csrf_token"/>
-  <input type="submit" value="Stage the record"/>
+  <input type="submit" value="Insert MARC record"/>
   &nbsp;
   <a href="/cgi-bin/koha/plugins/run.pl?class=Koha%3A%3APlugin%3A%3ASeedCataloguing&amp;method=tool">New search</a>
 </form>
