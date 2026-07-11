@@ -81,7 +81,10 @@ sub build {
             push @f754, c => $level->{rank};
             push @f754, a => $level->{name};
         }
-        for my $common (@{ $species->{common_names} // [] }) {
+        # Language-tagged names ("bloodroot (eng)") when the source provides
+        # them; fall back to the clean list for sources that don't.
+        my $names_754 = $species->{common_names_tagged} // $species->{common_names} // [];
+        for my $common (@$names_754) {
             push @f754, d => $common;
         }
         push @f754, '0' => $species->{authority_uri} if $species->{authority_uri};

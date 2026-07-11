@@ -8,8 +8,9 @@ use URI::Escape qw(uri_escape);
 # Catalogue of Life / ChecklistBank driver.
 # Returns a source-agnostic normalised hash suitable for MARCBuilder::build().
 #
-# CoL dataset in ChecklistBank: 3LR (latest release)
-# Base URL: https://api.checklistbank.org/dataset/3LR
+# CoL dataset in ChecklistBank: 3LXR (eXtended release — includes vernacular
+# names, which the standard 3LR release lacks)
+# Base URL: https://api.checklistbank.org/dataset/3LXR
 
 my $BASE   = 'https://api.checklistbank.org/dataset/3LXR';
 my $COL_UI = 'https://www.catalogueoflife.org/data/taxon';
@@ -92,16 +93,30 @@ sub fetch {
             if $epithet && !grep { $_->{rank} eq 'species' } @classification;
     }
 
-    # Common names from /info endpoint (prefer English).
-    # 3LXR returns two formats: structured {"name":"bloodroot","language":"eng"}
-    # and inline-suffix {"name":"Bloodroot (EN)"}. Handle both.
-    my @common;
-    my @vnames = @{ _ensure_array($info->{vernacularNames}) };
-    my @en = map  { _strip_lang_suffix($_->{name}) }
-             grep { _is_english($_) } @vnames;
-    my @ot = map  { _strip_lang_suffix($_->{name}) }
-             grep { !_is_english($_) } @vnames;
-    @common = (@en, @ot);
+    # Common names from /info endpoint. 3LXR encodes the language two ways:
+    # a structured field {"name":"Blodrot","language":"swe"} (ISO 639-3, the
+    # norm — ~34/35 entries) and, rarely, an inline "(EN)" suffix on the name
+    # with no language key. Normalise both to { name, lang } (lang = ISO 639-3
+    # or '' when unknown), English first so common_names[0] feeds the heading.
+    my @vn;
+    for my $v (@{ _ensure_array($info->{vernacularNames}) }) {
+        my $lang = lc($v->{language} // '');
+        my $raw  = $v->{name} // '';
+        if (!$lang && $raw =~ /\(([A-Za-z]{2})\)\s*$/) {
+            $lang = _iso2_to_iso3(lc $1);   # inline "(EN)" -> eng
+        }
+        my $name = _strip_lang_suffix($raw);
+        next unless length $name;
+        push @vn, { name => $name, lang => $lang };
+    }
+    my @en = grep {  _is_eng($_->{lang}) } @vn;
+    my @ot = grep { !_is_eng($_->{lang}) } @vn;
+    my @ordered = (@en, @ot);
+    # Two parallel views: clean names for headings/title (110$b, 245$b) and
+    # language-tagged names for the 754$d catalog entry ("bloodroot (eng)").
+    my @common        = map { $_->{name} } @ordered;
+    my @common_tagged = map { $_->{lang} ? "$_->{name} ($_->{lang})" : $_->{name} }
+                        @ordered;
 
     # Synonyms
     my @syn_names;
@@ -120,7 +135,8 @@ sub fetch {
 
     return {
         scientific_name => $nm->{scientificName} // '',
-        common_names    => \@common,
+        common_names    => \@common,          # clean, English first (headings)
+        common_names_tagged => \@common_tagged, # "name (iso639-3)" for 754$d
         authority_uri   => "$COL_UI/$id",
         external_uris   => [],          # CoL doesn't expose POWO links via API
         source_code     => 'catl',
@@ -145,12 +161,20 @@ sub _api_get {
     return $@ ? undef : $data;
 }
 
-sub _is_english {
-    my ($v) = @_;
-    return 1 if ($v->{language} // '') =~ /^eng?$/i;   # structured field
-    return 1 if ($v->{name}     // '') =~ /\(EN\)/i;   # inline suffix fallback
-    return 0;
+sub _is_eng {
+    my ($lang) = @_;
+    return (($lang // '') =~ /^en(g)?$/i) ? 1 : 0;   # ISO 639-3 'eng' or 639-1 'en'
 }
+
+# Minimal ISO 639-1 -> 639-3 map, only for the inline "(XX)" suffix case
+# (the structured field is already 639-3). Unknown codes -> '' (name goes
+# out untagged, per the "639-3, fallback bare" decision).
+my %ISO2_TO_3 = (
+    en => 'eng', de => 'deu', fr => 'fra', es => 'spa', it => 'ita',
+    nl => 'nld', sv => 'swe', da => 'dan', pt => 'por', ru => 'rus',
+    zh => 'zho', ja => 'jpn', pl => 'pol', fi => 'fin', cs => 'ces',
+);
+sub _iso2_to_iso3 { return $ISO2_TO_3{ $_[0] // '' } // ''; }
 
 sub _strip_lang_suffix {
     my ($s) = @_;

@@ -87,13 +87,17 @@ The `$c`/`$a` pair is repeatable, in hierarchical order from family down to spec
 Example:
 ```
 754 __ $c family $a Papaveraceae $c genus $a Sanguinaria $c species $a canadensis
-        $d bloodroot $0 https://www.catalogueoflife.org/data/taxon/79HDB $2 catl
+        $d bloodroot (eng) $d 血根草 (zho) $d Gatgwéhsai's (see)
+        $0 https://www.catalogueoflife.org/data/taxon/79HDB $2 catl
 ```
 
 **Key points:**
 - Field 754 exists **only in bibliographic format** — not in authority records.
-- `$d` carries vernacular/common names (repeatable). No language subfield exists
-  within 754 — multilingual names are an open question (see OPEN-QUESTIONS.md).
+- `$d` carries vernacular/common names (repeatable), each tagged with its
+  language as an inline ISO 639-3 code in parentheses — e.g. `bloodroot (eng)`.
+  Names the source supplies without a language code go out bare. Decided
+  2026-07-11 (see OPEN-QUESTIONS.md #2). The clean, untagged primary English
+  name is what goes in `110 $b` / `245 $b`.
 - `$0` here is a URI — correct per MARC21 (unlike `$6` which was used erroneously
   by EBo before correction).
 - The depth of the taxonomic hierarchy (full kingdom→species vs family→species only)

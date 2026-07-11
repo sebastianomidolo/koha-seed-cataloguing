@@ -7,34 +7,37 @@ uncertain, and what would help reach a decision.
 
 ## 1. Source of vernacular names — CoL API vs CoL website
 
-**Status:** under investigation by EBo (2026-07-08)
+**Status:** RESOLVED (2026-07-11, seba)
 
-The CoL website shows 35+ vernacular names for taxa that the ChecklistBank API
-(3LR dataset) returns zero for. EBo is checking the CoL/ChecklistBank code
-repository to find the actual upstream source (likely GBIF).
-
-**Do not implement any fallback until EBo's investigation is complete.**
-
-Once the source is identified, add it as a new `Source/XYZ.pm` driver or as a
-secondary lookup within `Source/CoL.pm`.
+The `3LR` dataset genuinely lacks vernacular names; the `3LXR` (eXtended
+release) dataset carries them, exposed on the `/taxon/{id}/info` endpoint under
+`vernacularNames` (NOT the `/taxon/{id}/vernacularname` sub-resource, which
+404s — the original bug). `Source/CoL.pm` now uses `3LXR` + `/info` and returns
+35 names for *Sanguinaria canadensis*. No external fallback source (GBIF etc.)
+is needed.
 
 ---
 
 ## 2. Multilingual vernacular names in MARC
 
-**Status:** raised by EBo (2026-07-08), not yet discussed
+**Status:** RESOLVED (2026-07-11, seba + EBo) — inline ISO 639-3 tag in `754 $d`
 
-*Physostegia virginiana* has vernacular names in 10–20 languages: Japanese
-(カクトラノオ), Ukrainian (Фізостегія віргінська), etc. MARC 754 `$d` has no
-language qualifier subfield.
+Chosen: multiple `$d` subfields, each with the language kept inline as an
+ISO 639-3 code in parentheses — `bloodroot (eng)`, `血根草 (zho)`,
+`Gatgwéhsai's (see)`. Names the API supplies with no language code go out bare.
 
-Options:
-- Store only the primary English name in `754 $d` and `110 $b`; put the full
-  multilingual table in the `910 $b` JSON blob
-- Use multiple `$d` subfields with the language suffix kept in the string
-  (e.g. "obedient plant (EN)", "カクトラノオ (JA)") — readable but not structured
-- Use MARC 880 (Alternate Graphic Representation) linked via `$6` for non-Latin
-  scripts — standard but adds significant complexity
+Why 639-3 (3-letter) rather than EBo's original 2-letter sketch: the API's
+`vernacularNames` already carries 639-3 codes (34/35 entries), and 639-3 is
+lossless for indigenous languages that have no 2-letter (639-1) code — exactly
+the names a heritage seed library most wants to keep (Seneca `see`, Ojibwe
+`oji`, Mohawk `moh`, Micmac `mic`, Choctaw `cho`). Mapping down to 2-letter
+would silently drop those tags.
+
+Implementation: `Source/CoL.pm` returns two parallel lists — `common_names`
+(clean, English-first; feeds the `110 $b` heading and `245 $b`) and
+`common_names_tagged` (feeds `754 $d`). The rare inline `(EN)` suffix in the
+source is normalised to `(eng)`. Not using 880/`$6` — overkill for a readable
+catalog entry; can revisit if non-Latin display becomes a requirement.
 
 ---
 
