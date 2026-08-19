@@ -68,9 +68,26 @@ for full details.
 
 ## Deployment
 
+### Standard installation (any Koha instance)
+
+Package the plugin as a `.kpz` file (a zip archive) and upload it via the Koha
+staff interface:
+
 ```bash
 cd /path/to/koha-seed-cataloguing
-bash deploy-to-lecat.sh        # copies files to the Koha plugin directory
+zip -r koha-seed-cataloguing.kpz Koha/
+```
+
+Then in Koha: **Administration → Plugins → Upload plugin** → select the `.kpz` file.
+
+### Development shortcut (Seba's lecat instance only)
+
+`deploy-to-lecat.sh` is a personal script hardcoded for one specific server
+(`alke.mooo.com`, instance `lecat`). It will not work on any other machine.
+
+```bash
+cd /home/seba/ebo-seed-library/SeedCataloguing
+bash deploy-to-lecat.sh
 sudo koha-plack --restart lecat
 ```
 

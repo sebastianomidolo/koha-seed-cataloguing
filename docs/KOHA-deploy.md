@@ -49,15 +49,31 @@ or equivalent).
 
 ## Deploying or updating plugin files
 
-### Source of truth
-All edits go to the source tree on seba's machine:
+### Standard installation (any Koha instance)
+
+Package the plugin as a `.kpz` file and upload it via the Koha staff interface:
+
+```bash
+cd /path/to/koha-seed-cataloguing
+zip -r koha-seed-cataloguing.kpz Koha/
+```
+
+Then in Koha: **Administration → Plugins → Upload plugin** → select the `.kpz` file.
+After uploading, go to **View all plugins** and click **Scan plugins** if the plugin
+does not appear immediately.
+
+### Development shortcut (Seba's lecat instance only)
+
+`deploy-to-lecat.sh` is hardcoded for `alke.mooo.com` / instance `lecat`.
+It will not work on any other machine.
+
+Source of truth: all edits go to:
 ```
 /home/seba/ebo-seed-library/SeedCataloguing/Koha/Plugin/
 ```
 Changes flow **source → deployed**, never the other direction.
 The lecat-koha agent must NOT edit deployed files directly.
 
-### Deploy script
 Run as `seba` (requires sudo to write to the lecat-owned plugin directory):
 
 ```bash
