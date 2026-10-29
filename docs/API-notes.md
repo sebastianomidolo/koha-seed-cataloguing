@@ -21,26 +21,37 @@ Authentication: none required (open API)
 
 ## Known issue: `/vernacularname` does not exist
 
-The endpoint `GET /taxon/{id}/vernacularname` returns **404** for all taxa in the
-3LR dataset. It is not a valid endpoint for this dataset. The correct endpoint for
-vernacular names is `/taxon/{id}/info`, which returns a `vernacularNames` array.
+The endpoint `GET /taxon/{id}/vernacularname` returns **404** (it does not exist
+in this API, on either `3LR` or `3LXR`) — this was the original cause of the
+missing vernacular names. The correct endpoint is `/taxon/{id}/info`, which
+returns a `vernacularNames` array.
 
 ---
 
-## Known issue: language encoding in vernacular names
+## Language encoding in vernacular names
 
-The `/info` endpoint does **not** provide a structured `language` field for vernacular
-names. Instead, language is embedded inline in the `name` string as a two-letter
-suffix in parentheses:
+The `/info` endpoint returns language **two** ways. The dominant form is a
+structured `language` field holding an ISO 639-3 code (verified on taxon
+`79HDB`: 34 of 35 entries):
+
+```json
+{ "name": "Blodrot",  "language": "swe" }
+{ "name": "血根草",    "language": "zho" }
+{ "name": "Gatgwéhsai's", "language": "see" }
+```
+
+Rarely, an entry has no `language` key and encodes it inline as a two-letter
+suffix instead (1 of 35 on `79HDB`):
 
 ```json
 { "name": "Bloodroot (EN)" }
-{ "name": "カクトラノオ (JA)" }
-{ "name": "Фізостегія віргінська (UK)" }
 ```
 
-The plugin strips the suffix via `_strip_lang_suffix()` and selects English names
-first by matching `\(EN\)`.
+`Source/CoL.pm` handles both: it reads the structured `language` when present,
+else parses the inline `(XX)` suffix and maps it to ISO 639-3 (`en` → `eng`).
+Names are normalised to `{ name, lang }`, English first. `fetch()` returns two
+parallel lists — `common_names` (clean, for `110$b`/`245$b`) and
+`common_names_tagged` (`name (iso639-3)`, for `754$d`). See MARC-decisions.md.
 
 ---
 

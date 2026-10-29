@@ -19,13 +19,13 @@ use constant SEED_MATCHER_CODE => 'SEEDCOL';
 use Koha::Plugin::SeedCataloguing::Source::CoL;
 use Koha::Plugin::SeedCataloguing::MARCBuilder;
 
-our $VERSION = '0.1';
+our $VERSION = '0.1.1';
 our $metadata = {
     name            => 'Seed Cataloguing Tool',
     author          => 'Sebastiano Midolo / EBo',
     description     => 'Fetch species data from Catalogue of Life and create seed-library MARC records',
     date_authored   => '2026-07-06',
-    date_updated    => '2026-07-06',
+    date_updated    => '2026-10-29',
     minimum_version => '25.11',
     maximum_version => undef,
     version         => $VERSION,
@@ -417,6 +417,7 @@ sub configure {
     my $csrf_token    = Koha::Token->new->generate_csrf(
         { session_id => scalar $cgi->cookie('CGISESSID') });
     my $default_src   = $self->retrieve_data('default_source') // 'catl';
+    my $sel_catl      = $default_src eq 'catl' ? ' selected' : '';
 
     $self->output_html(<<"HTML");
 <!DOCTYPE html>
@@ -432,7 +433,7 @@ sub configure {
   <p>
     <label>Default source:
       <select name="default_source">
-        <option value="catl"${\$default_src eq 'catl' ? ' selected' : ''}>Catalogue of Life (catl)</option>
+        <option value="catl"$sel_catl>Catalogue of Life (catl)</option>
       </select>
     </label>
   </p>

@@ -68,9 +68,26 @@ for full details.
 
 ## Deployment
 
+### Standard installation (any Koha instance)
+
+Package the plugin as a `.kpz` file (a zip archive) and upload it via the Koha
+staff interface:
+
 ```bash
 cd /path/to/koha-seed-cataloguing
-bash deploy-to-lecat.sh        # copies files to the Koha plugin directory
+zip -r koha-seed-cataloguing.kpz Koha/
+```
+
+Then in Koha: **Administration → Plugins → Upload plugin** → select the `.kpz` file.
+
+### Development shortcut (Seba's lecat instance only)
+
+`deploy-to-lecat.sh` is a personal script hardcoded for one specific server
+(`alke.mooo.com`, instance `lecat`). It will not work on any other machine.
+
+```bash
+cd /home/seba/ebo-seed-library/SeedCataloguing
+bash deploy-to-lecat.sh
 sudo koha-plack --restart lecat
 ```
 
@@ -80,10 +97,12 @@ See `docs/KOHA-deploy.md` for the full procedure and the mandatory Plack restart
 
 ## Known limitations
 
-- **Vernacular name coverage**: the Catalogue of Life API (ChecklistBank dataset 3LR)
-  does not return vernacular names for all species. The CoL website shows richer name
-  data whose exact source is under investigation (possibly GBIF). A fallback source
-  will be added once the upstream source is identified.
+- **Vernacular names**: sourced from the ChecklistBank `3LXR` (eXtended release)
+  dataset via the `/taxon/{id}/info` endpoint. Each name is emitted in `754 $d`
+  tagged with its ISO 639-3 language code (e.g. `bloodroot (eng)`); names the
+  source supplies without a language code go out bare. Coverage depends on
+  `3LXR`; no external fallback source is needed. (The standard `3LR` release,
+  used earlier, lacked vernacular names — do not use it.)
 - **910 $b JSON blob**: a full collection-event JSON payload is planned for field 910,
   but the mechanism for importing it reliably is still under development.
 - **No item creation**: the plugin stages species-level records only. Seed packet items
