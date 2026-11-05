@@ -5,7 +5,7 @@ the [Catalogue of Life](https://www.catalogueoflife.org/) and generates MARC21
 bibliographic records ready for review and import into Koha.
 
 **Status:** early working prototype, tested on Koha 25.11 / OpenSearch.  
-**Licence:** GPLv3 (intended)  
+**Licence:** GPLv3 (see LICENSE)  
 **Authors:** Sebastiano Midolo and John "EBo" David
 
 ---
@@ -31,7 +31,7 @@ Koha/Plugin/SeedCataloguing/
     MARCBuilder.pm                      — normalised species hash → MARC21 record
     Source/
         CoL.pm                          — Catalogue of Life / ChecklistBank API driver
-deploy-to-lecat.sh                      — development deploy script (see KOHA-deploy.md)
+create_package.sh                       — builds the .kpz package for upload
 docs/
     MARC-decisions.md                   — MARC field choices and rationale
     ARCHITECTURE.md                     — plugin design and data flow
@@ -79,19 +79,6 @@ zip -r koha-seed-cataloguing.kpz Koha/
 ```
 
 Then in Koha: **Administration → Plugins → Upload plugin** → select the `.kpz` file.
-
-### Development shortcut (Seba's lecat instance only)
-
-`deploy-to-lecat.sh` is a personal script hardcoded for one specific server
-(`alke.mooo.com`, instance `lecat`). It will not work on any other machine.
-
-```bash
-cd /home/seba/ebo-seed-library/SeedCataloguing
-bash deploy-to-lecat.sh
-sudo koha-plack --restart lecat
-```
-
-See `docs/KOHA-deploy.md` for the full procedure and the mandatory Plack restart rule.
 
 ---
 

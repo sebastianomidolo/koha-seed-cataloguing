@@ -131,7 +131,7 @@ Koha (cause under investigation — possibly field length or character encoding)
 
 `942 __ $c SEED`
 
-Koha-specific field for item type. Framework: SEED (cloned from Default on lecat).
+Koha-specific field for item type. Framework: SEED (cloned from Default).
 
 ---
 

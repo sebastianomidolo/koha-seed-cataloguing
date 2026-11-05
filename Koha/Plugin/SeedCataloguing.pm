@@ -13,7 +13,7 @@ use C4::ImportBatch qw(
 use Koha::Token;
 
 # Code of the Record Matching Rule used to detect already-catalogued taxa
-# (matches on 110$0, the CoL taxon URI — see memory_lecat/koha-opensearch-gotchas.md).
+# (matches on 110$0, the CoL taxon URI — see docs/KOHA-deploy.md).
 use constant SEED_MATCHER_CODE => 'SEEDCOL';
 
 use Koha::Plugin::SeedCataloguing::Source::CoL;

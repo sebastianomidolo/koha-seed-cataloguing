@@ -110,11 +110,8 @@ POST forms must include the token, not only the confirm step.
 **Every time plugin files are updated on disk, Plack must be restarted.**
 
 Plack workers cache `require`d modules in `%INC` for the lifetime of the worker
-process. Updating a `.pm` file on disk has no effect on a running worker. Only
-`seba` has sudo on the production server:
+process. Updating a `.pm` file on disk has no effect on a running worker. Restart it with:
 
 ```bash
-sudo koha-plack --restart lecat
+sudo koha-plack --restart <instance>
 ```
-
-See also: `deploy-to-lecat.sh`.

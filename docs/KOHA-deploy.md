@@ -1,14 +1,12 @@
 # Koha deployment guide
 
 Tested on: Koha 25.11, Debian 12, OpenSearch, Apache mpm_itk.  
-Server: `alke.mooo.com` (same box as `ilcentro.crabdance.com` and `lecat.crabdance.com`).  
-Test instance: `lecat` (throwaway — no real users).
 
 ---
 
 ## One-time setup on the Koha instance
 
-These steps are needed once. They have already been done on `lecat`.
+These steps are needed once.
 
 ### 1. Bibliographic framework SEED
 - Admin → MARC bibliographic frameworks → New framework
@@ -37,7 +35,7 @@ VALUES (
 );
 ```
 
-After inserting: full reindex required (`sudo koha-elasticsearch -d --instance lecat`
+After inserting: full reindex required (`sudo koha-elasticsearch -d --instance <instance>`
 or equivalent).
 
 ### 4. Record Matching Rule SEEDCOL
@@ -62,37 +60,13 @@ Then in Koha: **Administration → Plugins → Upload plugin** → select the `.
 After uploading, go to **View all plugins** and click **Scan plugins** if the plugin
 does not appear immediately.
 
-### Development shortcut (Seba's lecat instance only)
-
-`deploy-to-lecat.sh` is hardcoded for `alke.mooo.com` / instance `lecat`.
-It will not work on any other machine.
-
-Source of truth: all edits go to:
-```
-/home/seba/ebo-seed-library/SeedCataloguing/Koha/Plugin/
-```
-Changes flow **source → deployed**, never the other direction.
-The lecat-koha agent must NOT edit deployed files directly.
-
-Run as `seba` (requires sudo to write to the lecat-owned plugin directory):
-
-```bash
-cd /home/seba/ebo-seed-library/SeedCataloguing
-bash deploy-to-lecat.sh
-```
-
-The script copies all three plugin files to:
-```
-/var/lib/koha/lecat/plugins/Koha/Plugin/
-```
-
 ### MANDATORY: restart Plack after every deploy
 
 Plack workers cache `require`d modules in `%INC` for the lifetime of the process.
 Updating a file on disk has **no effect** until the workers restart.
 
 ```bash
-sudo koha-plack --restart lecat
+sudo koha-plack --restart <instance>
 ```
 
 This applies even if `perl -c` or `require` checks pass in a standalone process —
@@ -111,19 +85,8 @@ echo 'flush_all' | nc 127.0.0.1 11211
 ## Accessing the plugin (staff interface)
 
 ```
-https://lecat.crabdance.com:8443/cgi-bin/koha/plugins/run.pl?class=Koha%3A%3APlugin%3A%3ASeedCataloguing&method=tool
+https://<your-staff-host>/cgi-bin/koha/plugins/run.pl?class=Koha%3A%3APlugin%3A%3ASeedCataloguing&method=tool
 ```
 
 Or via the Koha staff menu: Tools → Seed Cataloguing Tool.
 
-Test credentials on lecat: `ebo / Seeds123!` (superlibrarian).
-
----
-
-## Shared airlock for multi-agent coordination
-
-`/srv/kohadev/` is a shared directory (group `kohadev`, mode 2775) readable and
-writable by `seba`, `lecat-koha`, and `ilcentro-koha`. Use it to pass scripts,
-SQL, notes, and task instructions between sessions. Always write with `umask 002`.
-
-Memory conventions: see `/srv/kohadev/MEMORY-CONVENTION.md`.
